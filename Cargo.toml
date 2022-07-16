@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+  "packages/api",
+  "packages/api/entity",
+  "packages/acrud-cli",
+  "packages/acrud",
+  "packages/api/migration",
+  "packages/client"
+]
+
+default-members = ["packages/api"]

@@ -1,0 +1,17 @@
+[package]
+name = "acrud-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.56"
+clap = { version = "3.2.8", features = ["derive", "cargo"] }
+sea-orm = { version = "0.8.0", features = ["sqlx-postgres", "runtime-tokio-native-tls"], default-features = false  }
+tokio = { version = "1.19.2", features = ["full"] }
+futures = "0.3.21"
+dotenv = "0.15.0"
+solvent = "0.8.3"
+acrud = { path = "../acrud" }
+entity = { path = "../api/entity" }

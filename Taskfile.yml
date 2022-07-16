@@ -1,0 +1,32 @@
+version: '3'
+
+tasks:
+  mongo:start:
+    desc: start mongodb
+    cmds:
+      - docker-compose up -d && docker-compose logs -f mongo
+
+  check:
+    desc: check applications
+    cmds:
+      - cargo check --all
+
+  test:
+    desc: test applications
+    cmds:
+      - cargo test --all
+
+  lint:
+    desc: lint applications
+    cmds:
+      - cargo clippy --all
+
+  lint:fix:
+    desc: lint server and fix if possible
+    cmds:
+      - cargo clippy --fix --allow-dirty --all
+
+  format:
+    desc: format
+    cmds:
+      - cargo +nightly fmt --all
