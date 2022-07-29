@@ -1,13 +1,19 @@
+mod errors;
+mod service;
+
 use acrud::pagination::get_paginated_result;
 use axum::{
     extract::{Extension, Query},
     response::IntoResponse,
-    routing::get,
+    routing::{get},
     Json, Router,
 };
-use entity::todo::{self, Entity as Todo};
-use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait};
+use entity::todo::{self, Entity as Todo, CreateTodo};
+use hyper::StatusCode;
+use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait, ActiveModelTrait};
 use serde::Deserialize;
+use validator::Validate;
+use errors::TodoError;
 
 const DEFAULT_LIMIT: usize = 20;
 const DEFAULT_PAGE: usize = 1;
@@ -25,7 +31,7 @@ async fn find(
     let page = params.page.unwrap_or(DEFAULT_PAGE);
     let limit = params.limit.unwrap_or(DEFAULT_LIMIT);
 
-    let mut finder = Todo::find();
+    let finder = Todo::find();
     let paginator = finder.paginate(conn, limit);
 
     let todos: Vec<todo::Model> = paginator
@@ -38,6 +44,21 @@ async fn find(
     Json(paginated_result)
 }
 
+async fn create(Extension(ref conn): Extension<DatabaseConnection>, Json(payload): Json<CreateTodo>) -> impl IntoResponse {
+    if let Err(err) = payload.validate() {
+        return (StatusCode::BAD_REQUEST, Json(err)).into_response();
+    }
+
+    let todo = todo::Model::new(payload.title, payload.text);
+
+    if todo.into_active_model().insert(conn).await.is_err() {
+        return TodoError::CouldNotSaveTodo.get().into_response();
+    }
+
+    (StatusCode::CREATED, Json(todo)).into_response()
+}
+
 pub fn router() -> Router {
-    Router::new().route("/", get(find))
+    Router::new()
+        .route("/", get(find).post(create))
 }

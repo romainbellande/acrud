@@ -28,9 +28,9 @@ pub async fn exec() {
 
     let todos: Vec<TodoModel> = vec![
         TodoModel {
-            id: ActiveValue::Set(1),
             title: ActiveValue::Set("".to_string()),
             text: ActiveValue::Set("".to_string()),
+            ..Default::default()
         }
     ];
 
