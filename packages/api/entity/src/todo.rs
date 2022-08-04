@@ -2,16 +2,19 @@ use sea_orm::{entity::prelude::*, DeleteMany, Set};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
+use utoipa::Component;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Component)]
 #[sea_orm(table_name = "todo")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false, column_type = "Uuid")]
     #[serde(skip_deserializing)]
     pub id: Uuid,
 
+    #[component(example = "Buy fruits")]
     pub title: String,
 
+    #[component(example = "3 apples, 2 bananas")]
     pub text: String,
 }
 
@@ -34,11 +37,13 @@ impl Model {
     }
 }
 
-#[derive(Debug, Serialize, Clone, Deserialize, Validate)]
+#[derive(Debug, Serialize, Clone, Deserialize, Validate, Component)]
 pub struct CreateTodo {
+    #[component(example = "Buy fruits")]
     #[validate(length(min = 1))]
     pub title: String,
 
+    #[component(example = "3 apples, 2 bananas")]
     #[validate(length(min = 1))]
     pub text: String,
 }
