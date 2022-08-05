@@ -7,10 +7,10 @@ pub fn todo_fixture() -> Box<Fixture<TodoModel>> {
         Fixture::new(
         "todo".to_string(),
         vec!["foo".to_string()],
-        vec![TodoModel{
-            id: ActiveValue::Set(1),
+        vec![TodoModel {
             title: ActiveValue::Set("".to_string()),
             text: ActiveValue::Set("".to_string()),
+            ..Default::default()
         }],
     ))
 }

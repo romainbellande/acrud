@@ -1,31 +1,47 @@
-use acrud::pagination::get_paginated_result;
+mod errors;
+mod service;
+
+use acrud::{pagination::get_paginated_result, map_response::map_response, extractors::json::Json};
 use axum::{
     extract::{Extension, Query},
     response::IntoResponse,
-    routing::get,
-    Json, Router,
+    routing::{get}, Router,
 };
-use entity::todo::{self, Entity as Todo};
+use entity::todo::{self, Entity as Todo, CreateTodo, Model as TodoModel};
+use hyper::StatusCode;
 use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait};
 use serde::Deserialize;
+
 
 const DEFAULT_LIMIT: usize = 20;
 const DEFAULT_PAGE: usize = 1;
 
 #[derive(Deserialize)]
-struct Params {
+pub struct Params {
     pub page: Option<usize>,
     pub limit: Option<usize>,
 }
 
-async fn find(
+
+#[utoipa::path(
+    get,
+    path = "/api/todos",
+    params(
+        ("limit" = usize, path),
+        ("page" = usize, path)
+    ),
+    responses(
+        (status = 200, description = "List all todos successfully", body = [TodoModel])
+    )
+)]
+pub async fn find(
     Extension(ref conn): Extension<DatabaseConnection>,
     Query(params): Query<Params>,
 ) -> impl IntoResponse {
     let page = params.page.unwrap_or(DEFAULT_PAGE);
     let limit = params.limit.unwrap_or(DEFAULT_LIMIT);
 
-    let mut finder = Todo::find();
+    let finder = Todo::find();
     let paginator = finder.paginate(conn, limit);
 
     let todos: Vec<todo::Model> = paginator
@@ -38,6 +54,22 @@ async fn find(
     Json(paginated_result)
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/todos",
+    request_body = CreateTodo,
+    responses(
+        (status = 201, description = "todo item created successfully", body = TodoModel),
+        (status = 400, description = "bad request", body = WebError),
+        (status = 500, description = "internal server error", body = WebError)
+    )
+)]
+async fn create(Extension(ref conn): Extension<DatabaseConnection>, Json(payload): Json<CreateTodo>) -> impl IntoResponse {
+    let result = service::create(payload, conn).await;
+    map_response(result, Some(StatusCode::CREATED))
+}
+
 pub fn router() -> Router {
-    Router::new().route("/", get(find))
+    Router::new()
+        .route("/", get(find).post(create))
 }

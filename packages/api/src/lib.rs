@@ -2,6 +2,7 @@ mod auth;
 mod db;
 mod modules;
 mod fixtures;
+mod api_doc;
 
 use axum::{
     middleware,
@@ -10,12 +11,12 @@ use axum::{
 use migration::{Migrator, MigratorTrait};
 use std::net::SocketAddr;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
 use db::Database;
 #[cfg(debug_assertions)]
 use dotenv::dotenv;
 use modules::todo;
 use acrud::log::print_request_response;
+use api_doc::ApiDoc;
 
 pub async fn start() {
     #[cfg(debug_assertions)]
@@ -36,9 +37,11 @@ pub async fn start() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let api_routes = Router::new().nest("/todos", todo::router());
+    let api_routes = Router::new()
+        .nest("/todos", todo::router());
 
     let app = Router::new()
+        .nest("/swagger",ApiDoc::router())
         .nest("/api", api_routes)
         .layer(middleware::from_fn(print_request_response))
         .layer(Extension(conn));
