@@ -4,6 +4,7 @@ use axum::{
     Json,
 };
 use serde_json::json;
+use acrud::errors::WebError;
 
 #[derive(Debug)]
 pub enum AuthError {
@@ -11,6 +12,18 @@ pub enum AuthError {
     MissingCredentials,
     TokenCreation,
     InvalidToken,
+}
+
+impl Into<WebError> for AuthError {
+    fn into(self) -> WebError {
+        match self {
+            Self::WrongCredentials => WebError {
+                code: 500,
+                status: StatusCode::UNAUTHORIZED,
+                message: "Wrong credentials".to_string(),
+            },
+        }
+    }
 }
 
 impl IntoResponse for AuthError {

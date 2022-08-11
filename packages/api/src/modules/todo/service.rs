@@ -1,17 +1,20 @@
+use super::errors::TodoError;
 use acrud::errors::WebError;
 use entity::todo::{self, CreateTodo};
 use hyper::StatusCode;
+use sea_orm::{ActiveModelTrait, DatabaseConnection};
 use validator::Validate;
-use sea_orm::{DatabaseConnection, ActiveModelTrait};
-use super::errors::TodoError;
 
-pub async fn create(create_todo: CreateTodo, conn: &DatabaseConnection) -> Result<todo::Model, WebError> {
+pub async fn create(
+    create_todo: CreateTodo,
+    conn: &DatabaseConnection,
+) -> Result<todo::Model, WebError> {
     println!("create todo");
     if let Err(err) = create_todo.validate() {
         return Err(WebError {
             code: 400,
             message: err.to_string(),
-            status: StatusCode::BAD_REQUEST
+            status: StatusCode::BAD_REQUEST,
         });
     }
 
@@ -21,5 +24,5 @@ pub async fn create(create_todo: CreateTodo, conn: &DatabaseConnection) -> Resul
         return Err(TodoError::CouldNotSaveTodo.into());
     }
 
-    return Ok(todo);
+    Ok(todo)
 }

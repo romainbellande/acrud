@@ -1,7 +1,7 @@
 mod body;
 mod claims;
-pub mod controller;
 mod credentials;
-mod error;
+mod errors;
 mod keys;
 mod service;
+pub mod controller;

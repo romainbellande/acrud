@@ -1,12 +1,20 @@
 use std::error::Error;
 
-use axum::{extract::{FromRequest, rejection::{JsonRejection, JsonDataError}, RequestParts}, BoxError, response::{IntoResponse, Response}, headers::HeaderValue};
-use hyper::{StatusCode, header};
-use serde::{de::DeserializeOwned, Serialize};
 use crate::errors::WebError;
-use serde_json::Value;
-use axum::{async_trait};
+use axum::async_trait;
+use axum::{
+    extract::{
+        rejection::{JsonDataError, JsonRejection},
+        FromRequest, RequestParts,
+    },
+    headers::HeaderValue,
+    response::{IntoResponse, Response},
+    BoxError,
+};
+use hyper::{header, StatusCode};
 use mime;
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::Value;
 
 pub struct Json<T>(pub T);
 
@@ -27,19 +35,17 @@ where
             Err(rejection) => {
                 // convert the error from `axum::Json` into whatever we want
                 let web_error: WebError = match rejection {
-                    JsonRejection::JsonDataError(err) => {
-                        WebError {
-                            code: 1,
-                            message: json_data_error_to_string(err),
-                            status: StatusCode::BAD_REQUEST,
-                        }
+                    JsonRejection::JsonDataError(err) => WebError {
+                        code: 1,
+                        message: json_data_error_to_string(err),
+                        status: StatusCode::BAD_REQUEST,
                     },
                     JsonRejection::MissingJsonContentType(err) => WebError {
                         code: 2,
                         message: err.to_string(),
                         status: StatusCode::BAD_REQUEST,
                     },
-                    err => WebError {
+                    _err => WebError {
                         code: 3,
                         message: "internal server error".to_string(),
                         status: StatusCode::INTERNAL_SERVER_ERROR,
@@ -54,12 +60,8 @@ where
 
 fn json_data_error_to_string(error: JsonDataError) -> String {
     match error.source() {
-        Some(err) => {
-            err.to_string()
-        },
-        None => {
-            error.to_string()
-        }
+        Some(err) => err.to_string(),
+        None => error.to_string(),
     }
 }
 
@@ -86,7 +88,7 @@ where
                 WebError {
                     message: err.to_string(),
                     code: 1,
-                    status: StatusCode::INTERNAL_SERVER_ERROR
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
                 },
             )
                 .into_response(),

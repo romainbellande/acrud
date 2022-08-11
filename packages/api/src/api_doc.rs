@@ -1,11 +1,14 @@
-use hyper::StatusCode;
-use utoipa::{OpenApi, Modify, openapi::security::{ApiKey, ApiKeyValue, SecurityScheme}};
-use entity::todo::{Model as TodoModel, CreateTodo};
-use utoipa_swagger_ui::Config;
-use std::sync::Arc;
-use axum::{Router, routing, Json, extract::Path, Extension, response::IntoResponse};
-use acrud::errors::WebError;
 use crate::modules::todo;
+use acrud::errors::WebError;
+use axum::{extract::Path, response::IntoResponse, routing, Extension, Json, Router};
+use entity::todo::{CreateTodo, Model as TodoModel};
+use hyper::StatusCode;
+use std::sync::Arc;
+use utoipa::{
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
+    Modify, OpenApi,
+};
+use utoipa_swagger_ui::Config;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -20,7 +23,6 @@ use crate::modules::todo;
     )
 )]
 pub struct ApiDoc;
-
 
 struct SecurityAddon;
 
@@ -41,11 +43,17 @@ impl ApiDoc {
         let config = Arc::new(Config::from("/swagger/openapi.json"));
 
         Router::new()
-            .route("/openapi.json", routing::get({
-                let doc = api_doc.clone();
-                move || async { Json(doc) }
-            }))
-            .route("/ui/*tail", routing::get(serve_swagger_ui).layer(Extension(config)))
+            .route(
+                "/openapi.json",
+                routing::get({
+                    let doc = api_doc;
+                    move || async { Json(doc) }
+                }),
+            )
+            .route(
+                "/ui/*tail",
+                routing::get(serve_swagger_ui).layer(Extension(config)),
+            )
     }
 }
 
