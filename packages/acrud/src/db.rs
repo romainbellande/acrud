@@ -11,7 +11,7 @@ impl Database {
 
         let connection = sea_orm::Database::connect(database_url)
             .await
-            .expect(&format!("could not connect to database: {}", database_url));
+            .unwrap_or_else(|_| panic!("could not connect to database: {}", database_url));
         Database { connection }
     }
 

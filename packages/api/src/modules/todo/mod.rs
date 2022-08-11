@@ -1,17 +1,17 @@
 mod errors;
 mod service;
 
-use acrud::{pagination::get_paginated_result, map_response::map_response, extractors::json::Json};
+use acrud::{extractors::json::Json, map_response::map_response, pagination::get_paginated_result};
 use axum::{
     extract::{Extension, Query},
     response::IntoResponse,
-    routing::{get}, Router,
+    routing::get,
+    Router,
 };
-use entity::todo::{self, Entity as Todo, CreateTodo, Model as TodoModel};
+use entity::todo::{self, CreateTodo, Entity as Todo};
 use hyper::StatusCode;
 use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait};
 use serde::Deserialize;
-
 
 const DEFAULT_LIMIT: usize = 20;
 const DEFAULT_PAGE: usize = 1;
@@ -21,7 +21,6 @@ pub struct Params {
     pub page: Option<usize>,
     pub limit: Option<usize>,
 }
-
 
 #[utoipa::path(
     get,
@@ -64,12 +63,14 @@ pub async fn find(
         (status = 500, description = "internal server error", body = WebError)
     )
 )]
-async fn create(Extension(ref conn): Extension<DatabaseConnection>, Json(payload): Json<CreateTodo>) -> impl IntoResponse {
+async fn create(
+    Extension(ref conn): Extension<DatabaseConnection>,
+    Json(payload): Json<CreateTodo>,
+) -> impl IntoResponse {
     let result = service::create(payload, conn).await;
     map_response(result, Some(StatusCode::CREATED))
 }
 
 pub fn router() -> Router {
-    Router::new()
-        .route("/", get(find).post(create))
+    Router::new().route("/", get(find).post(create))
 }

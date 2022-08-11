@@ -1,4 +1,7 @@
-use axum::{response::{IntoResponse, Response}, Json};
+use axum::{
+    response::{IntoResponse, Response},
+    Json,
+};
 use hyper::StatusCode;
 use serde_json::{json, Value};
 use utoipa::Component;

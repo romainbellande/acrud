@@ -1,10 +1,9 @@
-use entity::todo::{ActiveModel as TodoModel};
-use sea_orm::{ActiveValue};
 use crate::fixtures::Fixture;
+use entity::todo::ActiveModel as TodoModel;
+use sea_orm::ActiveValue;
 
 pub fn todo_fixture() -> Box<Fixture<TodoModel>> {
-    Box::new(
-        Fixture::new(
+    Box::new(Fixture::new(
         "todo".to_string(),
         vec!["foo".to_string()],
         vec![TodoModel {

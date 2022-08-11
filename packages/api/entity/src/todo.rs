@@ -1,8 +1,8 @@
 use sea_orm::{entity::prelude::*, DeleteMany, Set};
 use serde::{Deserialize, Serialize};
+use utoipa::Component;
 use uuid::Uuid;
 use validator::Validate;
-use utoipa::Component;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Component)]
 #[sea_orm(table_name = "todo")]

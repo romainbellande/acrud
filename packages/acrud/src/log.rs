@@ -5,6 +5,8 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+use serde_json::{self, json};
+
 pub async fn print_request_response(
     req: Request<Body>,
     next: Next<Body>,
@@ -37,9 +39,7 @@ where
         }
     };
 
-    if let Ok(body) = std::str::from_utf8(&bytes) {
-        tracing::debug!("{} body = {:?}", direction, body);
-    }
+    tracing::debug!(direction = direction, body = %String::from_utf8_lossy(&bytes));
 
     Ok(bytes)
 }

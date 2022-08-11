@@ -1,4 +1,4 @@
-use super::{error::AuthError, keys::KEYS};
+use super::{errors::AuthError, keys::KEYS};
 use axum::{
     async_trait,
     extract::{FromRequest, RequestParts, TypedHeader},

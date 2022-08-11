@@ -6,6 +6,11 @@ tasks:
     cmds:
       - docker-compose up -d && docker-compose logs -f mongo
 
+  start:dev:
+    desc: start server in development mod
+    cmds:
+      - cargo-watch -x run
+
   check:
     desc: check applications
     cmds:
