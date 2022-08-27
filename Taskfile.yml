@@ -9,7 +9,24 @@ tasks:
   start:dev:
     desc: start server in development mod
     cmds:
+      - docker-compose up -d
       - cargo-watch -x run
+
+  start:prod:
+    desc: start in production mod
+    env:
+      JWT_SECRET: McI6A9!kEgz81v^%f%vVx8mzKS
+      RUST_LOG: error
+      DATABASE_URL: postgres://pguser:pgpass@127.0.0.1:5447/todo_hyper
+    cmds:
+      - docker-compose up -d
+      -  cargo build --release
+      - ./target/release/api
+
+  bench:
+    desc: start benchmark thanks to drill
+    cmds:
+      - drill --benchmark ./drill/benchmark.yml --stats
 
   check:
     desc: check applications

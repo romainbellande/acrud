@@ -1,22 +1,27 @@
 use crate::modules::todo;
+use crate::auth::{self, credentials::Credentials, body::AuthBody};
 use acrud::errors::WebError;
 use axum::{extract::Path, response::IntoResponse, routing, Extension, Json, Router};
 use entity::todo::{CreateTodo, Model as TodoModel};
-use hyper::StatusCode;
+use hyper::StatusCode as HyperStatusCode;
 use std::sync::Arc;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-    Modify, OpenApi,
+    Modify, OpenApi, Component
 };
 use utoipa_swagger_ui::Config;
+
+#[derive(Component)]
+pub struct StatusCode(u8);
 
 #[derive(OpenApi)]
 #[openapi(
     handlers(
         todo::find,
-        todo::create
+        todo::create,
+        auth::authorize
     ),
-    components(TodoModel, CreateTodo, WebError),
+    components(TodoModel, CreateTodo, WebError, Credentials, AuthBody, StatusCode),
     modifiers(&SecurityAddon),
     tags(
         (name = "todo", description = "Todo items management API")
@@ -65,13 +70,13 @@ async fn serve_swagger_ui(
         Ok(file) => file
             .map(|file| {
                 (
-                    StatusCode::OK,
+                    HyperStatusCode::OK,
                     [("Content-Type", file.content_type)],
                     file.bytes,
                 )
                     .into_response()
             })
-            .unwrap_or_else(|| StatusCode::NOT_FOUND.into_response()),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            .unwrap_or_else(|| HyperStatusCode::NOT_FOUND.into_response()),
+        Err(error) => (HyperStatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
     }
 }

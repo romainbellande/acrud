@@ -30,6 +30,8 @@ impl WebError {
 
 impl IntoResponse for WebError {
     fn into_response(self) -> Response {
+        let file = std::file!();
+        tracing::debug!("{}", file);
         (self.status, self.into_json()).into_response()
     }
 }

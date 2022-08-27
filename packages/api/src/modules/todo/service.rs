@@ -9,7 +9,6 @@ pub async fn create(
     create_todo: CreateTodo,
     conn: &DatabaseConnection,
 ) -> Result<todo::Model, WebError> {
-    println!("create todo");
     if let Err(err) = create_todo.validate() {
         return Err(WebError {
             code: 400,
