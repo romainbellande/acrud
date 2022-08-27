@@ -4,3 +4,4 @@ pub mod extractors;
 pub mod log;
 pub mod map_response;
 pub mod pagination;
+pub mod tracing;

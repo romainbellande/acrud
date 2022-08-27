@@ -1,0 +1,35 @@
+---
+
+concurrency: 50
+base: 'http://127.0.0.1:3000/api'
+iterations: 10000
+rampup: 2
+
+plan:
+  - name: fetch todos
+    request:
+      url: /todos
+
+  - name: create todo
+    request:
+      url: /todos
+      method: POST
+      body: '{{ item.txn }}'
+      headers:
+        Content-Type: 'application/json'
+    with_items_from_csv:
+      file_name: ./fixtures/todo.csv
+      quote_char: "'"
+
+  # - name: create board
+  #   request:
+  #     url: /boards
+  #     method: POST
+  #     body: '{{ item.txn }}'
+  #     headers:
+  #       Content-Type: 'application/json'
+  #   with_items_from_csv:
+  #     file_name: ./fixtures/board.csv
+  #     quote_char: "'"
+
+

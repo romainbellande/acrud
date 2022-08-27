@@ -26,8 +26,8 @@ pub struct Params {
     get,
     path = "/api/todos",
     params(
-        ("limit" = usize, path),
-        ("page" = usize, path)
+        ("limit" = Option<usize>, query),
+        ("page" = Option<usize>, query)
     ),
     responses(
         (status = 200, description = "List all todos successfully", body = [TodoModel])

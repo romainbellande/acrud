@@ -3,6 +3,7 @@ mod auth;
 mod db;
 mod fixtures;
 mod modules;
+mod config;
 
 use acrud::log::print_request_response;
 use api_doc::ApiDoc;
@@ -13,7 +14,6 @@ use dotenv::dotenv;
 use migration::{Migrator, MigratorTrait};
 use modules::todo;
 use std::net::SocketAddr;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub async fn start() {
     #[cfg(debug_assertions)]
@@ -27,20 +27,11 @@ pub async fn start() {
         .await
         .expect("could not migrate database");
 
-    let json_format = tracing_subscriber::fmt::format::Format::default().json();
+    acrud::tracing::init();
 
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false)
-        .event_format(json_format);
-    
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "tower_http=debug".into()),
-        ))
-        .with(fmt_layer)
-        .init();
-
-    let api_routes = Router::new().nest("/todos", todo::router());
+    let api_routes = Router::new()
+        .nest("/todos", todo::router())
+        .nest("/auth", auth::router());
 
     let app = Router::new()
         .nest("/swagger", ApiDoc::router())
