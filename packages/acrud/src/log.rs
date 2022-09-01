@@ -5,8 +5,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-
-
 pub async fn print_request_response(
     req: Request<Body>,
     next: Next<Body>,

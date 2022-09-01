@@ -1,9 +1,9 @@
 mod api_doc;
 mod auth;
-mod db;
-mod fixtures;
-mod modules;
 mod config;
+mod db;
+pub mod fixtures;
+mod modules;
 
 use acrud::log::print_request_response;
 use api_doc::ApiDoc;

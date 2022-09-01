@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  fixtures:load:
+    desc: load fixtures
+    cmds:
+      - cargo run -- fixtures:load
+
+  migration:migrate:
+    desc: load fixtures
+    cmds:
+      - cargo run -- migration:migrate

@@ -4,11 +4,13 @@ pub mod credentials;
 mod errors;
 mod keys;
 mod service;
+pub mod middleware;
 
+pub use claims::Claims;
+use acrud::map_response::map_response;
+use axum::{response::IntoResponse, routing::post, Extension, Json, Router};
 use credentials::Credentials;
-use acrud::{map_response::map_response};
-use axum::{response::IntoResponse, routing::post, Json, Router};
-
+use sea_orm::{DatabaseConnection, EntityTrait};
 
 #[utoipa::path(
     post,
@@ -21,8 +23,11 @@ use axum::{response::IntoResponse, routing::post, Json, Router};
         (status = 500, description = "internal server error", body = WebError)
     )
 )]
-pub async fn authorize(Json(credentials): Json<Credentials>) -> impl IntoResponse {
-    let result = service::authorize(credentials).await;
+pub async fn authorize(
+    Extension(ref conn): Extension<DatabaseConnection>,
+    Json(credentials): Json<Credentials>,
+) -> impl IntoResponse {
+    let result = service::authorize(conn, credentials).await;
     tracing::debug!("result: {:?}", result);
     map_response(result, None)
 }

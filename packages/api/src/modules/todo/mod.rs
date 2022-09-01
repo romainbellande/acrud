@@ -4,14 +4,16 @@ mod service;
 use acrud::{extractors::json::Json, map_response::map_response, pagination::get_paginated_result};
 use axum::{
     extract::{Extension, Query},
+    middleware,
     response::IntoResponse,
     routing::get,
     Router,
 };
 use entity::todo::{self, CreateTodo, Entity as Todo};
-use hyper::StatusCode;
+use hyper::{StatusCode};
 use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait};
 use serde::Deserialize;
+use crate::auth::{Claims, middleware::auth_bearer_middleware};
 
 const DEFAULT_LIMIT: usize = 20;
 const DEFAULT_PAGE: usize = 1;
@@ -31,12 +33,17 @@ pub struct Params {
     ),
     responses(
         (status = 200, description = "List all todos successfully", body = [TodoModel])
+    ),
+    security(
+        ("authorization" = [])
     )
 )]
 pub async fn find(
     Extension(ref conn): Extension<DatabaseConnection>,
+    Extension(claims): Extension<Claims>,
     Query(params): Query<Params>,
 ) -> impl IntoResponse {
+    println!("claims: {:?}", claims);
     let page = params.page.unwrap_or(DEFAULT_PAGE);
     let limit = params.limit.unwrap_or(DEFAULT_LIMIT);
 
@@ -72,5 +79,7 @@ async fn create(
 }
 
 pub fn router() -> Router {
-    Router::new().route("/", get(find).post(create))
+    Router::new()
+        .route("/", get(find).post(create))
+        .route_layer(middleware::from_fn(auth_bearer_middleware))
 }
