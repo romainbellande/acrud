@@ -1,4 +1,4 @@
-use entity::user::Entity as User;
+use entity::user::{Column, Entity as User};
 use sea_orm::{DbBackend, Schema};
 use sea_orm_migration::prelude::*;
 
@@ -13,9 +13,15 @@ impl MigrationName for Migration {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let db_postgres = DbBackend::Postgres;
-        let schema = Schema::new(db_postgres);
-        let user_table = schema.create_table_from_entity(User);
+        // let db_postgres = DbBackend::Postgres;
+        // let schema = Schema::new(db_postgres);
+        let user_table = Table::create()
+            .table(User)
+            .col(ColumnDef::new(Column::Id).uuid().not_null().primary_key())
+            .col(ColumnDef::new(Column::Email).string().not_null())
+            .col(ColumnDef::new(Column::PasswordHash).string().not_null())
+            .to_owned();
+
         manager.create_table(user_table).await
     }
 

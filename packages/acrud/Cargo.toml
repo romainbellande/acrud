@@ -18,3 +18,4 @@ tracing-subscriber = { version = "0.3.11", features = ["env-filter"] }
 utoipa = { version = "1.1.0", features = ["uuid"]}
 mime = "0.3.16"
 argon2 = "0.4.1"
+uuid = { version = "0.8", features = ["serde", "v4"] }

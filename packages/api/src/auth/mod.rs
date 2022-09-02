@@ -3,12 +3,12 @@ mod claims;
 pub mod credentials;
 mod errors;
 mod keys;
-mod service;
 pub mod middleware;
+mod service;
 
-pub use claims::Claims;
 use acrud::map_response::map_response;
 use axum::{response::IntoResponse, routing::post, Extension, Json, Router};
+pub use claims::Claims;
 use credentials::Credentials;
 use sea_orm::{DatabaseConnection, EntityTrait};
 

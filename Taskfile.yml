@@ -5,6 +5,10 @@ includes:
     taskfile: ./packages/acrud-cli
     dir: ./packages/acrud-cli
 
+  api:
+    taskfile: ./packages/api
+    dir: ./packages/api
+
 env:
   JWT_SECRET: McI6A9!kEgz81v^%f%vVx8mzKS
   RUST_LOG: debug

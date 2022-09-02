@@ -1,28 +1,23 @@
 mod errors;
+mod params;
 mod service;
-
-use acrud::{extractors::json::Json, map_response::map_response, pagination::get_paginated_result};
+use crate::auth::{middleware::auth_bearer_middleware, Claims};
+use acrud::{
+    map_response::map_response, pagination::get_paginated_result, utils::uuid::str_to_uuid,
+};
 use axum::{
     extract::{Extension, Query},
     middleware,
     response::IntoResponse,
-    routing::get,
-    Router,
+    routing::{get, post},
+    Json, Router,
 };
 use entity::todo::{self, CreateTodo, Entity as Todo};
-use hyper::{StatusCode};
+use entity::user::Entity as User;
+use hyper::StatusCode;
+use params::FindParams;
 use sea_orm::{DatabaseConnection, EntityTrait, PaginatorTrait};
 use serde::Deserialize;
-use crate::auth::{Claims, middleware::auth_bearer_middleware};
-
-const DEFAULT_LIMIT: usize = 20;
-const DEFAULT_PAGE: usize = 1;
-
-#[derive(Deserialize)]
-pub struct Params {
-    pub page: Option<usize>,
-    pub limit: Option<usize>,
-}
 
 #[utoipa::path(
     get,
@@ -41,23 +36,10 @@ pub struct Params {
 pub async fn find(
     Extension(ref conn): Extension<DatabaseConnection>,
     Extension(claims): Extension<Claims>,
-    Query(params): Query<Params>,
+    Query(params): Query<FindParams>,
 ) -> impl IntoResponse {
-    println!("claims: {:?}", claims);
-    let page = params.page.unwrap_or(DEFAULT_PAGE);
-    let limit = params.limit.unwrap_or(DEFAULT_LIMIT);
-
-    let finder = Todo::find();
-    let paginator = finder.paginate(conn, limit);
-
-    let todos: Vec<todo::Model> = paginator
-        .fetch_page(page - 1)
-        .await
-        .expect("could not retreive data");
-
-    let paginated_result = get_paginated_result(paginator, todos).await;
-
-    Json(paginated_result)
+    let response = service::find(conn, claims, params).await;
+    map_response(response, None)
 }
 
 #[utoipa::path(
@@ -68,13 +50,18 @@ pub async fn find(
         (status = 201, description = "todo item created successfully", body = TodoModel),
         (status = 400, description = "bad request", body = WebError),
         (status = 500, description = "internal server error", body = WebError)
+    ),
+    security(
+        ("authorization" = [])
     )
 )]
-async fn create(
+pub async fn create(
     Extension(ref conn): Extension<DatabaseConnection>,
+    Extension(claims): Extension<Claims>,
     Json(payload): Json<CreateTodo>,
 ) -> impl IntoResponse {
-    let result = service::create(payload, conn).await;
+    tracing::debug!("claims: {:?}", claims);
+    let result = service::create(payload, conn, claims.sub).await;
     map_response(result, Some(StatusCode::CREATED))
 }
 

@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  migration:create:
+    desc: create a new migration
+    cmds:
+      - sea-orm-cli migrate generate {{.CLI_ARGS}}

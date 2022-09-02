@@ -40,7 +40,7 @@ pub async fn authorize(
     }
 
     let claims = Claims {
-        sub: my_user.email.to_owned(),
+        sub: my_user.id.to_string().to_owned(),
         company: "ACME".to_owned(),
         // TODO: add roles here
         // Mandatory expiry time as UTC timestamp

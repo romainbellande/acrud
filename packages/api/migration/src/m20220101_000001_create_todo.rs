@@ -1,4 +1,4 @@
-use entity::todo::Entity as Todo;
+use entity::todo::{Column, Entity as Todo};
 use sea_orm::{DbBackend, Schema};
 use sea_orm_migration::prelude::*;
 
@@ -13,9 +13,18 @@ impl MigrationName for Migration {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let db_postgres = DbBackend::Postgres;
-        let schema = Schema::new(db_postgres);
-        let todo_table = schema.create_table_from_entity(Todo);
+        // let db_postgres = DbBackend::Postgres;
+        // let schema = Schema::new(db_postgres);
+
+        // let todo_table = schema.create_table_from_entity(Todo);
+        let todo_table = Table::create()
+            .table(Todo)
+            .if_not_exists()
+            .col(ColumnDef::new(Column::Id).uuid().not_null().primary_key())
+            .col(ColumnDef::new(Column::Title).string().not_null())
+            .col(ColumnDef::new(Column::Text).string().not_null())
+            .to_owned();
+
         manager.create_table(todo_table).await
     }
 

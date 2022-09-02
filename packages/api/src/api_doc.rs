@@ -3,6 +3,7 @@ use crate::modules::todo;
 use acrud::errors::WebError;
 use axum::{extract::Path, response::IntoResponse, routing, Extension, Json, Router};
 use entity::todo::{CreateTodo, Model as TodoModel};
+use hyper::header::AUTHORIZATION;
 use hyper::StatusCode as HyperStatusCode;
 use std::sync::Arc;
 use utoipa::{
@@ -10,7 +11,6 @@ use utoipa::{
     Component, Modify, OpenApi,
 };
 use utoipa_swagger_ui::Config;
-use hyper::header::AUTHORIZATION;
 
 #[derive(Component)]
 pub struct StatusCode(u8);
