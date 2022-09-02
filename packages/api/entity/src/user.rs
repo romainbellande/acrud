@@ -1,3 +1,4 @@
+use argon2;
 use sea_orm::{entity::prelude::*, DeleteMany, Set};
 use serde::{Deserialize, Serialize};
 use utoipa::Component;
@@ -19,11 +20,22 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(email: String, password_hash: String) -> Self {
+    pub fn new(email: String, password: String, salt: String) -> Self {
+        let config = argon2::Config::default();
+        let password_hash =
+            argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config).unwrap();
+
         Self {
             id: Uuid::new_v4(),
             email,
             password_hash,
+        }
+    }
+
+    pub fn verify_password(&self, password: String) -> bool {
+        match argon2::verify_encoded(&self.password_hash, password.as_bytes()) {
+            Ok(res) => res,
+            Err(_) => false,
         }
     }
 
@@ -48,12 +60,33 @@ pub struct CreateUser {
     pub password: String,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
+#[derive(Debug, Serialize, Clone, Deserialize, Validate, Component)]
+pub struct UserResponse {
+    #[component(example = "john@example.com")]
+    pub id: Uuid,
 
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No RelationDef")
+    #[component(example = "john@example.com")]
+    pub email: String,
+}
+
+impl From<Model> for UserResponse {
+    fn from(user: Model) -> Self {
+        Self {
+            id: user.id,
+            email: user.email,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(has_many = "super::todo::Entity")]
+    Todo,
+}
+
+impl Related<super::todo::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Todo.def()
     }
 }
 

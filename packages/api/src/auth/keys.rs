@@ -1,6 +1,6 @@
+use crate::config::CONFIG;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
-use crate::config::CONFIG;
 
 pub struct Keys {
     pub encoding: EncodingKey,

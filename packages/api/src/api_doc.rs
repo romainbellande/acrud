@@ -1,13 +1,14 @@
+use crate::auth::{self, body::AuthBody, credentials::Credentials};
 use crate::modules::todo;
-use crate::auth::{self, credentials::Credentials, body::AuthBody};
 use acrud::errors::WebError;
 use axum::{extract::Path, response::IntoResponse, routing, Extension, Json, Router};
 use entity::todo::{CreateTodo, Model as TodoModel};
+use hyper::header::AUTHORIZATION;
 use hyper::StatusCode as HyperStatusCode;
 use std::sync::Arc;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-    Modify, OpenApi, Component
+    Component, Modify, OpenApi,
 };
 use utoipa_swagger_ui::Config;
 
@@ -35,8 +36,8 @@ impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         if let Some(components) = openapi.components.as_mut() {
             components.add_security_scheme(
-                "api_key",
-                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("apikey"))),
+                AUTHORIZATION.to_string(),
+                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new(AUTHORIZATION.to_string()))),
             )
         }
     }

@@ -16,14 +16,19 @@ pub struct Model {
 
     #[component(example = "3 apples, 2 bananas")]
     pub text: String,
+
+    #[sea_orm(column_type = "Uuid")]
+    #[serde(skip_deserializing)]
+    pub user_id: Uuid,
 }
 
 impl Model {
-    pub fn new(title: String, text: String) -> Self {
+    pub fn new(title: String, text: String, user_id: Uuid) -> Self {
         Self {
             id: Uuid::new_v4(),
             title,
             text,
+            user_id,
         }
     }
 
@@ -32,28 +37,25 @@ impl Model {
             id: Set(self.id.to_owned()),
             title: Set(self.title.to_owned()),
             text: Set(self.text.to_owned()),
+            user_id: Set(self.user_id.to_owned()),
             ..Default::default()
         }
     }
 }
 
-#[derive(Debug, Serialize, Clone, Deserialize, Validate, Component)]
-pub struct CreateTodo {
-    #[component(example = "Buy fruits")]
-    #[validate(length(min = 1))]
-    pub title: String,
-
-    #[component(example = "3 apples, 2 bananas")]
-    #[validate(length(min = 1))]
-    pub text: String,
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::user::Entity",
+        from = "Column::UserId",
+        to = "super::user::Column::Id"
+    )]
+    User,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No RelationDef")
+impl Related<super::user::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::User.def()
     }
 }
 
@@ -78,4 +80,13 @@ impl Entity {
     pub fn delete_by_id(id: i32) -> DeleteMany<Entity> {
         Self::delete_many().filter(Column::Id.eq(id))
     }
+}
+
+#[derive(Debug, Serialize, Clone, Deserialize, Validate, Component)]
+pub struct CreateTodo {
+    #[component(example = "Buy fruits")]
+    pub title: String,
+
+    #[component(example = "Buy fruits")]
+    pub text: String,
 }

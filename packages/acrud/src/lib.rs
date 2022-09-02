@@ -1,7 +1,9 @@
 pub mod db;
 pub mod errors;
 pub mod extractors;
+pub mod fixtures;
 pub mod log;
 pub mod map_response;
 pub mod pagination;
 pub mod tracing;
+pub mod utils;

@@ -1,4 +1,5 @@
 use super::{errors::AuthError, keys::KEYS};
+use acrud::errors::WebError;
 use axum::{
     async_trait,
     extract::{FromRequest, RequestParts, TypedHeader},
@@ -6,8 +7,9 @@ use axum::{
 };
 use jsonwebtoken::{decode, Validation};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub sub: String,
     pub company: String,
@@ -19,17 +21,17 @@ impl<B> FromRequest<B> for Claims
 where
     B: Send,
 {
-    type Rejection = AuthError;
+    type Rejection = WebError;
 
     async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
         // Extract the token from the authorization header
         let TypedHeader(Authorization(bearer)) =
             TypedHeader::<Authorization<Bearer>>::from_request(req)
                 .await
-                .map_err(|_| AuthError::InvalidToken)?;
+                .map_err(|_| AuthError::InvalidToken.into())?;
         // Decode the user data
         let token_data = decode::<Claims>(bearer.token(), &KEYS.decoding, &Validation::default())
-            .map_err(|_| AuthError::InvalidToken)?;
+            .map_err(|_| AuthError::InvalidToken.into())?;
 
         Ok(token_data.claims)
     }
